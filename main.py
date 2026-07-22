@@ -1,9 +1,23 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+import json
 
 app = FastAPI(title="마이 헬스 로그 API", version="1.0")
+DATA_FILE = "data.json"
 
 records = []  # TODO: Day 3에서 파일 저장으로 발전
+def load_records():
+    try:
+        with open(DATA_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return []
+
+def save_records():
+    with open(DATA_FILE, "w", encoding="utf-8") as f:
+        json.dump(records, f, ensure_ascii=False, indent=2)
+
+records = load_records()
 
 class RecordIn(BaseModel):
     date: str
@@ -77,6 +91,7 @@ def create_record(record: RecordIn):
     new_record["warnings"] = warnings
 
     records.append(new_record)
+    save_records()
     return new_record
 
 # TODO: GET    /records            - 전체 조회
@@ -111,6 +126,7 @@ def update_record(record_id: int, updated: RecordIn):
             new_data["warnings"] = warnings
 
             records[i] = new_data
+            save_records()
             return new_data
     raise HTTPException(status_code=404, detail="기록을 찾을 수 없습니다")
 # TODO: DELETE /records/{record_id} - 삭제
@@ -119,7 +135,25 @@ def delete_record(record_id: int):
     for i, r in enumerate(records):
         if r["id"] == record_id:
             records.pop(i)
+            save_records()
             return {"message": f"{record_id}번 기록이 삭제되었습니다"}
     raise HTTPException(status_code=404, detail="기록을 찾을 수 없습니다")
 # TODO: GET    /search             - 날짜 범위 검색
+@app.get("/search")
+def search_records(start: str, end: str):
+    result = [r for r in records if start <= r["date"] <= end]
+    return {"count": len(result), "records": result}
 # TODO: GET    /stats              - 통계
+@app.get("/stats")
+def get_stats():
+    if len(records) == 0:
+        return {"count": 0, "message": "저장된 기록이 없습니다"}
+
+    avg_weight = sum(r["weight"] for r in records) / len(records)
+    avg_bmi = sum(r["bmi"] for r in records) / len(records)
+
+    return {
+        "count": len(records),
+        "average_weight": round(avg_weight, 1),
+        "average_bmi": round(avg_bmi, 1)
+    }
