@@ -53,3 +53,17 @@ docker run -p 8000:8000 my-health-api
 ## 배포 접속 URL
 
 http://13.209.42.155:8000/docs
+
+## 화면 캡처
+
+### screenshots-1
+
+![screenshots-1](./screenshots/my-health-log-capture-1.png)
+
+### screenshots-2
+
+![screenshots-2](./screenshots/my-health-log-capture-2.png)
+
+### screenshots-3
+
+![screenshots-3](./screenshots/my-health-log-capture-3.png)
