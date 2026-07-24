@@ -1,8 +1,11 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import json
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI(title="마이 헬스 로그 API", version="1.0")
+app.mount("/ui", StaticFiles(directory="static", html=True), name="static")
+
 DATA_FILE = "data.json"
 
 records = []  # TODO: Day 3에서 파일 저장으로 발전
