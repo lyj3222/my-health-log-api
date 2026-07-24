@@ -68,6 +68,14 @@ def make_warnings(bmi_category: str, bp_category: str, sugar_category: str) -> l
         warnings.append("혈당이 당뇨 의심 범위입니다. 병원 상담을 권장합니다.")
     return warnings
 
+def classify_steps(steps: int) -> str:
+    if steps < 5000:
+        return "부족"
+    elif steps < 10000:
+        return "적정"
+    else:
+        return "우수"
+
 @app.get("/")
 def read_root():
     return {"message": "마이 헬스 로그 API"}
@@ -83,12 +91,14 @@ def create_record(record: RecordIn):
     bp_category = classify_bp(record.systolic, record.diastolic)
     sugar_category = classify_sugar(record.blood_sugar)
     warnings = make_warnings(bmi_category, bp_category, sugar_category)
+    steps_category = classify_steps(record.steps)
 
     new_record["bmi"] = bmi
     new_record["bmi_category"] = bmi_category
     new_record["bp_category"] = bp_category
     new_record["sugar_category"] = sugar_category
     new_record["warnings"] = warnings
+    new_record["steps_category"] = steps_category
 
     records.append(new_record)
     save_records()
@@ -117,14 +127,15 @@ def update_record(record_id: int, updated: RecordIn):
             bmi_category = classify_bmi(bmi)
             bp_category = classify_bp(updated.systolic, updated.diastolic)
             sugar_category = classify_sugar(updated.blood_sugar)
-            warnings = make_warnings(bmi_category, bp_category, sugar_category)
+            warnings = make_warnings(bmi_category, bp_category, sugar_category, steps_category)
+            steps_category = classify_steps(updated.steps)
 
             new_data["bmi"] = bmi
             new_data["bmi_category"] = bmi_category
             new_data["bp_category"] = bp_category
             new_data["sugar_category"] = sugar_category
             new_data["warnings"] = warnings
-
+            new_data["steps_category"] = steps_category
             records[i] = new_data
             save_records()
             return new_data
